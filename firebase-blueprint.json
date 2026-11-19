@@ -1,0 +1,173 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Owner-isolated user profile metadata for cross-device library sync.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "displayName": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "photoURL": { "type": "string", "maxLength": 1500 },
+        "lastActiveDevice": { "type": "string", "enum": ["Windows Desktop", "Android", "Web"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "displayName", "lastActiveDevice", "createdAt", "updatedAt"]
+    },
+    "ReaderPreferences": {
+      "title": "ReaderPreferences",
+      "description": "Synced typography, theme, and night mode reading preferences.",
+      "type": "object",
+      "properties": {
+        "ownerId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "appTheme": { "type": "string", "enum": ["light", "dark"] },
+        "readerTheme": { "type": "string", "enum": ["light", "sepia", "night", "oled"] },
+        "fontFamily": { "type": "string", "enum": ["source-serif", "lora", "jakarta", "dyslexic", "mono"] },
+        "fontSize": { "type": "number" },
+        "lineHeight": { "type": "number" },
+        "pageWidth": { "type": "string", "enum": ["narrow", "medium", "wide"] },
+        "textAlign": { "type": "string", "enum": ["left", "justify"] },
+        "readingMode": { "type": "string", "enum": ["paginated", "scroll"] },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["ownerId", "appTheme", "readerTheme", "fontFamily", "fontSize", "lineHeight", "pageWidth", "textAlign", "updatedAt"]
+    },
+    "Category": {
+      "title": "Category",
+      "description": "Custom user-defined library category for organizing ePub books.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-zA-Z0-9_\\-]+$", "maxLength": 128 },
+        "ownerId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "name": { "type": "string", "minLength": 1, "maxLength": 60 },
+        "color": { "type": "string", "minLength": 4, "maxLength": 20 },
+        "description": { "type": "string", "maxLength": 240 },
+        "sortOrder": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "ownerId", "name", "color", "sortOrder", "createdAt", "updatedAt"]
+    },
+    "Book": {
+      "title": "Book",
+      "description": "Personal ePub/PDF book metadata, categories, favorite status, and cross-device reading progress.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-zA-Z0-9_\\-]+$", "maxLength": 128 },
+        "ownerId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "format": { "type": "string", "enum": ["epub", "pdf"] },
+        "title": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "author": { "type": "string", "minLength": 1, "maxLength": 140 },
+        "publisher": { "type": "string", "maxLength": 140 },
+        "language": { "type": "string", "maxLength": 24 },
+        "synopsis": { "type": "string", "maxLength": 2000 },
+        "notes": { "type": "string", "maxLength": 4000 },
+        "coverUrl": { "type": "string", "maxLength": 120000 },
+        "categoryIds": { "type": "array" },
+        "isFavorite": { "type": "boolean" },
+        "status": { "type": "string", "enum": ["unread", "reading", "completed"] },
+        "progressPercent": { "type": "number" },
+        "currentChapterIndex": { "type": "number" },
+        "scrollRatio": { "type": "number" },
+        "totalChapters": { "type": "number" },
+        "lastDevice": { "type": "string", "enum": ["Windows Desktop", "Android", "Web"] },
+        "fileSizeBytes": { "type": "number" },
+        "hasCloudChapters": { "type": "boolean" },
+        "isBuiltIn": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "id",
+        "ownerId",
+        "title",
+        "author",
+        "categoryIds",
+        "isFavorite",
+        "status",
+        "progressPercent",
+        "currentChapterIndex",
+        "scrollRatio",
+        "totalChapters",
+        "lastDevice",
+        "hasCloudChapters",
+        "isBuiltIn",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "BookChapter": {
+      "title": "BookChapter",
+      "description": "Synced ePub chapter HTML/text content for seamless reading across Windows and Android.",
+      "type": "object",
+      "properties": {
+        "ownerId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "bookId": { "type": "string", "pattern": "^[a-zA-Z0-9_\\-]+$", "maxLength": 128 },
+        "index": { "type": "number" },
+        "title": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "htmlContent": { "type": "string", "maxLength": 450000 },
+        "wordCount": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["ownerId", "bookId", "index", "title", "htmlContent", "wordCount", "createdAt", "updatedAt"]
+    },
+    "Bookmark": {
+      "title": "Bookmark",
+      "description": "Synced reading bookmark with chapter position, excerpt, and user note.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-zA-Z0-9_\\-]+$", "maxLength": 128 },
+        "ownerId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "bookId": { "type": "string", "pattern": "^[a-zA-Z0-9_\\-]+$", "maxLength": 128 },
+        "chapterIndex": { "type": "number" },
+        "chapterTitle": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "scrollRatio": { "type": "number" },
+        "progressPercent": { "type": "number" },
+        "excerpt": { "type": "string", "maxLength": 600 },
+        "note": { "type": "string", "maxLength": 1000 },
+        "deviceName": { "type": "string", "enum": ["Windows Desktop", "Android", "Web"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "id",
+        "ownerId",
+        "bookId",
+        "chapterIndex",
+        "chapterTitle",
+        "scrollRatio",
+        "progressPercent",
+        "deviceName",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "User profile document isolated by userId."
+    },
+    "/users/{userId}/preferences/{prefId}": {
+      "schema": { "$ref": "#/entities/ReaderPreferences" },
+      "description": "Synced reading preferences document (prefId = 'reader')."
+    },
+    "/users/{userId}/categories/{categoryId}": {
+      "schema": { "$ref": "#/entities/Category" },
+      "description": "User custom book categories."
+    },
+    "/users/{userId}/books/{bookId}": {
+      "schema": { "$ref": "#/entities/Book" },
+      "description": "User personal ePub library books and synced reading progress."
+    },
+    "/users/{userId}/books/{bookId}/chapters/{chapterId}": {
+      "schema": { "$ref": "#/entities/BookChapter" },
+      "description": "Chapters belonging to a synced ePub book."
+    },
+    "/users/{userId}/bookmarks/{bookmarkId}": {
+      "schema": { "$ref": "#/entities/Bookmark" },
+      "description": "Synced bookmarks linked to books in the user library."
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "Lumina",
+  "description": "Leitor de ePub minimalista com modo noturno, tipografia personalizável, categorias, favoritos e sincronização em tempo real entre Windows Desktop e Android.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

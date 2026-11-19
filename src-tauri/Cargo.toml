@@ -1,0 +1,20 @@
+[package]
+name = "lumina-epub"
+version = "1.0.0"
+description = "Lumina — Leitor ePub Minimalista com Biblioteca Sincronizada"
+authors = ["Lumina"]
+edition = "2021"
+
+[lib]
+name = "lumina_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-dialog = "2"
+tauri-plugin-fs = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
