@@ -54,6 +54,9 @@ jobs:
   build-android-apk:
     name: Compilar APK Android
     runs-on: ubuntu-latest
+    env:
+      ANDROID_HOME: /usr/local/lib/android/sdk
+      NDK_HOME: /usr/local/lib/android/sdk/ndk/26.3.11579264
     steps:
       - name: Clonar repositório
         uses: actions/checkout@v4
@@ -77,11 +80,10 @@ jobs:
         with:
           targets: aarch64-linux-android,armv7-linux-androideabi
 
-      - name: Instalar Android Platform 34 e NDK
+      - name: Instalar Android Platform 34 e NDK 26
         run: |
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
           $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-34" "build-tools;34.0.0" "ndk;26.3.11579264"
-          echo "NDK_HOME=$ANDROID_HOME/ndk/26.3.11579264" >> $GITHUB_ENV
 
       - name: Cache de dependências Cargo/Rust
         uses: Swatinem/rust-cache@v2
@@ -98,9 +100,6 @@ jobs:
 
       - name: Compilar APK Android
         run: bunx @tauri-apps/cli@2 android build --apk --target aarch64 --target armv7
-        env:
-          ANDROID_HOME: ${{ env.ANDROID_HOME }}
-          NDK_HOME: ${{ env.NDK_HOME }}
 
       - name: Publicar APK Android como Artefato
         uses: actions/upload-artifact@v4
