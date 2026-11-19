@@ -17,6 +17,9 @@ jobs:
       - name: Clonar repositório
         uses: actions/checkout@v4
 
+      - name: Configurar Bun
+        uses: oven-sh/setup-bun@v2
+
       - name: Configurar Node.js 20
         uses: actions/setup-node@v4
         with:
@@ -30,11 +33,11 @@ jobs:
         with:
           workspaces: src-tauri
 
-      - name: Instalar dependências Node
-        run: npm install
+      - name: Instalar dependências com Bun
+        run: bun install
 
-      - name: Gerar build do instalador Tauri (NSIS .exe + MSI)
-        run: npx @tauri-apps/cli@2 build --bundles nsis,msi
+      - name: Gerar build dos instaladores Tauri (NSIS .exe + MSI)
+        run: bunx @tauri-apps/cli@2 build --bundles nsis,msi
         env:
           CI: true
 
@@ -55,6 +58,9 @@ jobs:
       - name: Clonar repositório
         uses: actions/checkout@v4
 
+      - name: Configurar Bun
+        uses: oven-sh/setup-bun@v2
+
       - name: Configurar Node.js 20
         uses: actions/setup-node@v4
         with:
@@ -66,36 +72,32 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Configurar Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Instalar Android Platform 34, Build Tools e NDK
-        run: |
-          yes | sdkmanager --licenses || true
-          sdkmanager "platforms;android-34" "build-tools;34.0.0" "ndk;26.3.11579264"
-          echo "ANDROID_HOME=$ANDROID_HOME" >> $GITHUB_ENV
-          echo "NDK_HOME=$ANDROID_HOME/ndk/26.3.11579264" >> $GITHUB_ENV
-
       - name: Configurar Rust e Targets Android
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: aarch64-linux-android,armv7-linux-androideabi
+
+      - name: Instalar Android Platform 34 e NDK
+        run: |
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-34" "build-tools;34.0.0" "ndk;26.3.11579264"
+          echo "NDK_HOME=$ANDROID_HOME/ndk/26.3.11579264" >> $GITHUB_ENV
 
       - name: Cache de dependências Cargo/Rust
         uses: Swatinem/rust-cache@v2
         with:
           workspaces: src-tauri
 
-      - name: Instalar dependências Node
-        run: npm install
+      - name: Instalar dependências com Bun
+        run: bun install
 
       - name: Inicializar Projeto Android do Tauri
         run: |
-          npx @tauri-apps/cli@2 android init --ci
+          bunx @tauri-apps/cli@2 android init --ci
           chmod +x src-tauri/gen/android/gradlew || true
 
       - name: Compilar APK Android
-        run: npx @tauri-apps/cli@2 android build --apk --target aarch64,armv7
+        run: bunx @tauri-apps/cli@2 android build --apk --target aarch64,armv7
         env:
           ANDROID_HOME: ${{ env.ANDROID_HOME }}
           NDK_HOME: ${{ env.NDK_HOME }}

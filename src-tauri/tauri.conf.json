@@ -4,9 +4,9 @@
   "version": "1.0.0",
   "identifier": "com.lumina.epubreader",
   "build": {
-    "beforeDevCommand": "npm run dev",
+    "beforeDevCommand": "bun run dev || npm run dev",
     "devUrl": "http://localhost:3000",
-    "beforeBuildCommand": "npm run build",
+    "beforeBuildCommand": "bun run build || npm run build",
     "frontendDist": "../dist"
   },
   "app": {
