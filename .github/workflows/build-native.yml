@@ -97,7 +97,7 @@ jobs:
           chmod +x src-tauri/gen/android/gradlew || true
 
       - name: Compilar APK Android
-        run: bunx @tauri-apps/cli@2 android build --apk --target aarch64,armv7
+        run: bunx @tauri-apps/cli@2 android build --apk --target aarch64 --target armv7
         env:
           ANDROID_HOME: ${{ env.ANDROID_HOME }}
           NDK_HOME: ${{ env.NDK_HOME }}
