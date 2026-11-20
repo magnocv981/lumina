@@ -118,6 +118,8 @@ function LuminaWorkspace() {
                 workspaceMode={sync.workspaceMode}
                 onChangeWorkspaceMode={sync.setWorkspaceMode}
                 onSignIn={sync.signInWithGoogle}
+                onSignInWithEmail={sync.signInWithEmail}
+                onSignUpWithEmail={sync.signUpWithEmail}
                 onSignOut={sync.signOutUser}
                 books={sync.books}
                 categories={sync.categories}
@@ -225,6 +227,8 @@ function LuminaWorkspace() {
                   workspaceMode={sync.workspaceMode}
                   onChangeWorkspaceMode={sync.setWorkspaceMode}
                   onSignIn={sync.signInWithGoogle}
+                  onSignInWithEmail={sync.signInWithEmail}
+                  onSignUpWithEmail={sync.signUpWithEmail}
                   onSignOut={sync.signOutUser}
                   books={sync.books}
                   categories={sync.categories}

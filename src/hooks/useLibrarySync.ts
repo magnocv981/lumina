@@ -1,8 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  createUserWithEmailAndPassword,
   onAuthStateChanged,
+  signInWithEmailAndPassword,
   signInWithPopup,
   signOut,
+  updateProfile,
   type User,
 } from 'firebase/auth';
 import {
@@ -444,8 +447,50 @@ export function useLibrarySync() {
     setSyncError(null);
     try {
       await signInWithPopup(auth, googleProvider);
-    } catch (err) {
-      setSyncError(err instanceof Error ? err.message : 'Falha ao autenticar com Google.');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.includes('popup-blocked')) {
+        setSyncError(
+          'O WebView nativo do Windows/Android bloqueia popups de navegador. Utilize a opção "Entrar com E-mail e Senha" logo abaixo para sincronizar de imediato.'
+        );
+      } else {
+        setSyncError(msg || 'Falha ao autenticar com Google.');
+      }
+    }
+  };
+
+  const signInWithEmail = async (email: string, pass: string) => {
+    setSyncError(null);
+    try {
+      await signInWithEmailAndPassword(auth, email.trim(), pass);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.includes('user-not-found') || msg.includes('wrong-password') || msg.includes('invalid-credential')) {
+        setSyncError('E-mail ou senha incorretos.');
+      } else {
+        setSyncError(msg || 'Erro ao autenticar com e-mail.');
+      }
+      throw err;
+    }
+  };
+
+  const signUpWithEmail = async (email: string, pass: string, displayName?: string) => {
+    setSyncError(null);
+    try {
+      const cred = await createUserWithEmailAndPassword(auth, email.trim(), pass);
+      if (displayName && cred.user) {
+        await updateProfile(cred.user, { displayName });
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.includes('email-already-in-use')) {
+        setSyncError('Este e-mail já está cadastrado. Alterne para a aba "Entrar".');
+      } else if (msg.includes('weak-password')) {
+        setSyncError('A senha deve ter pelo menos 6 caracteres.');
+      } else {
+        setSyncError(msg || 'Erro ao criar conta.');
+      }
+      throw err;
     }
   };
 
@@ -993,6 +1038,8 @@ export function useLibrarySync() {
     books,
     bookmarks,
     signInWithGoogle,
+    signInWithEmail,
+    signUpWithEmail,
     signOutUser,
     loadBookChapters,
     loadPdfBinary,

@@ -34,6 +34,8 @@ interface SyncDevicesViewProps {
   workspaceMode: WorkspaceMode;
   onChangeWorkspaceMode: (mode: WorkspaceMode) => void;
   onSignIn: () => Promise<void>;
+  onSignInWithEmail?: (email: string, pass: string) => Promise<void>;
+  onSignUpWithEmail?: (email: string, pass: string, name?: string) => Promise<void>;
   onSignOut: () => Promise<void>;
   books: Book[];
   categories: Category[];
@@ -50,6 +52,8 @@ export const SyncDevicesView: React.FC<SyncDevicesViewProps> = ({
   workspaceMode,
   onChangeWorkspaceMode,
   onSignIn,
+  onSignInWithEmail,
+  onSignUpWithEmail,
   onSignOut,
   books,
   categories,
@@ -58,7 +62,29 @@ export const SyncDevicesView: React.FC<SyncDevicesViewProps> = ({
 }) => {
   const [nativeInfo, setNativeInfo] = useState<NativePlatformInfo | null>(null);
   const [backupMessage, setBackupMessage] = useState<string | null>(null);
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
+  const [emailInput, setEmailInput] = useState('');
+  const [passwordInput, setPasswordInput] = useState('');
+  const [nameInput, setNameInput] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const inTauri = isRunningInTauri();
+
+  const handleEmailSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!emailInput || !passwordInput) return;
+    setIsSubmitting(true);
+    try {
+      if (authMode === 'register' && onSignUpWithEmail) {
+        await onSignUpWithEmail(emailInput, passwordInput, nameInput.trim() || 'Leitor Lumina');
+      } else if (onSignInWithEmail) {
+        await onSignInWithEmail(emailInput, passwordInput);
+      }
+    } catch {
+      // syncError já é tratado no hook
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   useEffect(() => {
     getNativePlatformInfo().then(setNativeInfo);
@@ -112,12 +138,12 @@ export const SyncDevicesView: React.FC<SyncDevicesViewProps> = ({
               <p className="text-xs text-slate-500 dark:text-slate-400">
                 {user
                   ? `${user.email} · ${isSyncing ? 'Sincronizando...' : 'Conectado em tempo real'}`
-                  : 'Entre com sua conta Google nos dois dispositivos para manter tudo sincronizado.'}
+                  : 'Conecte sua conta para manter biblioteca, progresso e notas sincronizados entre Windows e Android.'}
               </p>
             </div>
           </div>
 
-          {user ? (
+          {user && (
             <button
               onClick={onSignOut}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-[#E6E8EE] dark:border-[#242E42] text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-[#1A2130] transition-colors self-start sm:self-auto cursor-pointer"
@@ -125,18 +151,118 @@ export const SyncDevicesView: React.FC<SyncDevicesViewProps> = ({
               <LogOut className="w-3.5 h-3.5" />
               Desconectar
             </button>
-          ) : (
-            <button
-              onClick={onSignIn}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#3B5BDB] hover:bg-[#324EC9] text-white text-xs font-medium transition-colors self-start sm:self-auto cursor-pointer"
-            >
-              Entrar com Google
-            </button>
           )}
         </div>
 
+        {!user && (
+          <div className="space-y-4 pt-2">
+            <button
+              onClick={onSignIn}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#3B5BDB] hover:bg-[#324EC9] text-white text-xs font-medium transition-colors cursor-pointer shadow-sm shadow-[#3B5BDB]/25"
+            >
+              Entrar com Google
+            </button>
+
+            <div className="flex items-center gap-3 my-2">
+              <div className="h-px bg-slate-200 dark:bg-slate-800 flex-1" />
+              <span className="text-[11px] font-medium text-slate-400 uppercase tracking-wider">
+                ou conecte com e-mail (recomendado para desktop/webview)
+              </span>
+              <div className="h-px bg-slate-200 dark:bg-slate-800 flex-1" />
+            </div>
+
+            {/* Alternador de Modo: Entrar / Criar Conta */}
+            <div className="flex p-1 rounded-xl bg-[#F2F4F8] dark:bg-[#0B0F17] max-w-xs">
+              <button
+                type="button"
+                onClick={() => setAuthMode('login')}
+                className={`flex-1 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                  authMode === 'login'
+                    ? 'bg-white dark:bg-[#1A2130] text-slate-900 dark:text-white shadow-sm'
+                    : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                }`}
+              >
+                Entrar
+              </button>
+              <button
+                type="button"
+                onClick={() => setAuthMode('register')}
+                className={`flex-1 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                  authMode === 'register'
+                    ? 'bg-white dark:bg-[#1A2130] text-slate-900 dark:text-white shadow-sm'
+                    : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                }`}
+              >
+                Criar Conta
+              </button>
+            </div>
+
+            {/* Formulário de E-mail e Senha */}
+            <form onSubmit={handleEmailSubmit} className="space-y-3 max-w-md">
+              {authMode === 'register' && (
+                <div>
+                  <label className="block text-[11px] font-medium text-slate-600 dark:text-slate-300 mb-1">
+                    Seu Nome
+                  </label>
+                  <input
+                    type="text"
+                    value={nameInput}
+                    onChange={(e) => setNameInput(e.target.value)}
+                    placeholder="Ex: Carlos Silva"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0B0F17] text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#3B5BDB]/30"
+                  />
+                </div>
+              )}
+
+              <div>
+                <label className="block text-[11px] font-medium text-slate-600 dark:text-slate-300 mb-1">
+                  E-mail
+                </label>
+                <input
+                  type="email"
+                  required
+                  value={emailInput}
+                  onChange={(e) => setEmailInput(e.target.value)}
+                  placeholder="seu.email@exemplo.com"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0B0F17] text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#3B5BDB]/30"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-medium text-slate-600 dark:text-slate-300 mb-1">
+                  Senha
+                </label>
+                <input
+                  type="password"
+                  required
+                  value={passwordInput}
+                  onChange={(e) => setPasswordInput(e.target.value)}
+                  placeholder="Mínimo de 6 caracteres"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0B0F17] text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#3B5BDB]/30"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 text-xs font-medium transition-colors disabled:opacity-60 cursor-pointer"
+              >
+                {isSubmitting
+                  ? 'Processando...'
+                  : authMode === 'register'
+                  ? 'Criar Conta e Conectar Nuvem'
+                  : 'Entrar e Sincronizar'}
+              </button>
+            </form>
+          </div>
+        )}
+
         {syncError && (
-          <p className="text-xs text-red-600 dark:text-red-400">{syncError}</p>
+          <div className="p-3 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50">
+            <p className="text-xs text-red-600 dark:text-red-400 font-medium leading-relaxed">
+              {syncError}
+            </p>
+          </div>
         )}
 
         <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100 dark:border-[#1B2230]">
